@@ -1,0 +1,17 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Timing logs and reports
+stat/timing*.log
+stat/timing_report*.png
+/transformers/*
+AGENTS.md
+Qwen3.5_usage.md
