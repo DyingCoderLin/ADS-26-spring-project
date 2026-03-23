@@ -25,7 +25,7 @@ chmod +x run.sh
 
 ## Qwen3.5-0.8B 与架构要点（实验载体选择原因）
 
-**Qwen3.5** 是通义千问团队开源的**最新一代 Decoder-only Causal Language Model（因果语言模型）**，在开放权重模型中属于**最先进路线之一**。与当前主流大模型类似，Qwen3.5 遵循**「只看左侧上下文、逐步预测下一 token」**的因果推理范式。
+**Qwen3.5** 是通义千问团队开源的**最新一代 Decoder-only Causal Language Model（因果语言模型）**，在开放权重模型中属于**最先进路线之一**。与当前主流大模型类似，Qwen3.5 遵循「只看左侧上下文、逐步预测下一 token」的因果推理范式。
 
 **Qwen/Qwen3.5-0.8B** 是该系列中的**稠密小模型**（**无 MoE**），适合本地部署与课堂演示，并与更大规格、多模态成员**共享同一套设计思想**。
 
@@ -47,9 +47,10 @@ chmod +x run.sh
 
 ---
 
-## 延伸阅读（面向同学）
+## 延伸阅读
 
 - 官方模型卡：<https://huggingface.co/Qwen/Qwen3.5-0.8B>
+- Qwen3.5官方介绍：<https://qwen.ai/blog?id=qwen3.5>
 
 ---
 
