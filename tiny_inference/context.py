@@ -50,6 +50,20 @@ from typing import Any, Callable, Optional
 # 一条「发给引擎」的消息，形如 {"role": "system"|"user"|"assistant", "content": str}。
 Message = dict[str, Any]
 
+
+def _as_token_ids(out: Any) -> list[int]:
+    """把 apply_chat_template(tokenize=True) 的返回规整成扁平 token id 列表。
+
+    不同 transformers 版本 / tokenizer 下，`apply_chat_template` 可能返回一个
+    `BatchEncoding`（dict，含 "input_ids"）而非纯 list；若直接 len() 会数成键数（2），
+    导致 token 计数失真、压缩永不触发。这里统一取出 input_ids。
+    """
+    if hasattr(out, "input_ids"):
+        out = out.input_ids
+    elif isinstance(out, dict):
+        out = out["input_ids"]
+    return out
+
 # 摘要器：给定一段「待压缩的纯文本」，返回压缩后的摘要文本。
 # chatbox 里它会被接到真正的引擎上（让模型自己写摘要）；测试里可以传一个桩函数。
 Summarizer = Callable[[str], str]
@@ -140,11 +154,15 @@ class ContextManager:
     # ====================================================================
 
     def _summary_message(self) -> Optional[Message]:
-        """把当前 `summary` 包装成一条放在 system 之后的消息；没有摘要则返回 None。"""
+        """把当前 `summary` 包装成一条放在 system 之后的消息；没有摘要则返回 None。
+
+        注意 role 用 "user" 而非 "system"：Qwen3.5 的 chat template 只允许 system
+        消息出现一条。
+        """
         if not self.summary:
             return None
         return {
-            "role": "system",
+            "role": "user",
             "content": "以下是更早对话的摘要（供你延续上下文）：\n" + self.summary,
         }
 
@@ -154,10 +172,12 @@ class ContextManager:
         与引擎 `_prepare_inputs` 的口径保持一致（`add_generation_prompt=True`），
         因此这里数出来的就是引擎真正会 prefill 的输入长度。
         """
-        ids = self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=True,
-            add_generation_prompt=True,
+        ids = _as_token_ids(
+            self.tokenizer.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=True,
+            )
         )
         return len(ids)
 
@@ -168,10 +188,12 @@ class ContextManager:
     def prompt_token_ids(self, messages: list[Message]) -> list[int]:
         """渲染成 token id 列表（测试脚本用它来度量相邻两轮的「共享前缀长度」）。"""
         return list(
-            self.tokenizer.apply_chat_template(
-                messages,
-                tokenize=True,
-                add_generation_prompt=True,
+            _as_token_ids(
+                self.tokenizer.apply_chat_template(
+                    messages,
+                    tokenize=True,
+                    add_generation_prompt=True,
+                )
             )
         )
 
